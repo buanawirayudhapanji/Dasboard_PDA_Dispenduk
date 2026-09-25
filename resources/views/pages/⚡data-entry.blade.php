@@ -85,6 +85,10 @@ new #[Title('Input Data Kependudukan')] class extends Component
 
     public int $importInvalid = 0;
 
+    public int $importNew = 0;
+
+    public int $importUpdated = 0;
+
     public ?string $importToken = null;
 
     public int $newPeriodYear;
@@ -348,6 +352,8 @@ new #[Title('Input Data Kependudukan')] class extends Component
         $this->importTotal = $result['total'];
         $this->importValid = count($result['rows']);
         $this->importInvalid = $result['invalid'];
+        $this->importNew = $result['new'];
+        $this->importUpdated = $result['updated'];
 
         if ($result['rows'] !== []) {
             $this->importToken = (string) Str::uuid();
@@ -389,6 +395,8 @@ new #[Title('Input Data Kependudukan')] class extends Component
         $this->importTotal = 0;
         $this->importValid = 0;
         $this->importInvalid = 0;
+        $this->importNew = 0;
+        $this->importUpdated = 0;
         $this->statusMessage = number_format($savedCount, 0, ',', '.').' baris valid berhasil disimpan ke database.';
         unset($this->recentFacts);
     }
@@ -401,6 +409,8 @@ new #[Title('Input Data Kependudukan')] class extends Component
         $this->importTotal = 0;
         $this->importValid = 0;
         $this->importInvalid = 0;
+        $this->importNew = 0;
+        $this->importUpdated = 0;
         $this->resetErrorBag('importFile');
     }
 
@@ -566,13 +576,13 @@ new #[Title('Input Data Kependudukan')] class extends Component
 };
 ?>
 
-<div class="flex h-full w-full flex-1 flex-col gap-6">
+<div class="flex h-full w-full flex-1 flex-col gap-6 bg-[#fff6fa] p-4 text-rose-950 sm:p-6">
     <div class="flex flex-wrap items-end justify-between gap-4">
         <div>
             <flux:heading size="xl">{{ $inputMode === 'manage' ? 'Edit Data Kependudukan' : 'Input Data Kependudukan' }}</flux:heading>
             <flux:text class="mt-2">{{ $inputMode === 'manage' ? 'Ubah nilai data tersimpan dan periode pelaporan.' : 'Gunakan input satuan untuk koreksi cepat atau impor massal untuk memasukkan banyak data sekaligus.' }}</flux:text>
         </div>
-        <flux:button :href="route('home')" icon="chart-bar" wire:navigate>Lihat dashboard publik</flux:button>
+        <flux:button :href="route('home')" icon="chart-bar" wire:navigate class="border-pink-200 bg-white text-pink-600 hover:bg-pink-50">Lihat dashboard publik</flux:button>
     </div>
 
     @if ($statusMessage)
@@ -583,17 +593,17 @@ new #[Title('Input Data Kependudukan')] class extends Component
     @endif
 
     @if ($inputMode !== 'manage')
-    <details class="rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-        <summary class="cursor-pointer list-none px-6 py-5">
+    <details class="rounded-2xl border border-pink-100 bg-white shadow-sm shadow-pink-100/50">
+        <summary class="cursor-pointer list-none px-5 py-4 hover:bg-pink-50/50">
             <div class="flex items-center justify-between gap-4">
                 <div>
                     <flux:heading size="lg">Tambah periode baru</flux:heading>
                     <flux:text class="mt-1">Tanggal awal dan akhir akan dibuat otomatis berdasarkan semester.</flux:text>
                 </div>
-                <flux:icon.plus class="size-5 text-zinc-500" />
+                <span class="grid size-7 place-items-center rounded-lg border border-pink-200 bg-pink-50 text-pink-500"><flux:icon.plus class="size-4" /></span>
             </div>
         </summary>
-        <form wire:submit="createPeriod" class="grid gap-4 border-t border-zinc-200 px-6 py-5 sm:grid-cols-[1fr_1fr_auto] sm:items-end dark:border-zinc-700">
+        <form wire:submit="createPeriod" class="grid gap-4 border-t border-pink-100 px-5 py-4 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
             <flux:field>
                 <flux:label>Tahun</flux:label>
                 <flux:input wire:model="newPeriodYear" type="number" min="2000" max="2100" />
@@ -614,25 +624,25 @@ new #[Title('Input Data Kependudukan')] class extends Component
     @endif
 
     @if ($inputMode === 'manage')
-    <details class="rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-        <summary class="cursor-pointer list-none px-6 py-5">
+    <details class="rounded-2xl border border-pink-100 bg-white shadow-sm shadow-pink-100/50">
+        <summary class="cursor-pointer list-none px-5 py-4 hover:bg-pink-50/50">
             <div class="flex items-center justify-between gap-4">
                 <div>
                     <flux:heading size="lg">Edit periode</flux:heading>
                     <flux:text class="mt-1">Ubah nama dan rentang tanggal periode. Tahun serta semester tetap agar data yang sudah tersimpan tidak tertukar.</flux:text>
                 </div>
-                <flux:icon.calendar-days class="size-5 text-zinc-500" />
+                <span class="grid size-7 place-items-center rounded-lg border border-pink-200 bg-pink-50 text-pink-500"><flux:icon.calendar-days class="size-4" /></span>
             </div>
         </summary>
-        <div class="grid gap-6 border-t border-zinc-200 px-6 py-5 lg:grid-cols-[0.8fr_1.2fr] dark:border-zinc-700">
-            <div class="max-h-64 overflow-y-auto rounded-xl border border-zinc-200 dark:border-zinc-700">
+        <div class="grid gap-6 border-t border-pink-100 px-5 py-4 lg:grid-cols-[0.8fr_1.2fr]">
+            <div class="max-h-64 overflow-y-auto rounded-xl border border-pink-100">
                 @foreach ($this->periods as $period)
-                    <button type="button" wire:click="editPeriod({{ $period->periode_id }})" wire:key="period-edit-{{ $period->periode_id }}" class="flex w-full items-center justify-between gap-3 border-b border-zinc-100 px-4 py-3 text-left last:border-b-0 hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-800">
+                    <button type="button" wire:click="editPeriod({{ $period->periode_id }})" wire:key="period-edit-{{ $period->periode_id }}" class="flex w-full items-center justify-between gap-3 border-b border-pink-50 px-4 py-3 text-left last:border-b-0 hover:bg-pink-50">
                         <span>
-                            <span class="block font-medium text-zinc-800 dark:text-zinc-100">{{ $period->label_periode }}</span>
-                            <span class="block text-xs text-zinc-500">{{ $period->tanggal_mulai->format('d M Y') }} – {{ $period->tanggal_selesai->format('d M Y') }}</span>
+                            <span class="block font-medium text-rose-950">{{ $period->label_periode }}</span>
+                            <span class="block text-xs text-pink-500">{{ $period->tanggal_mulai->format('d M Y') }} – {{ $period->tanggal_selesai->format('d M Y') }}</span>
                         </span>
-                        <flux:icon.pencil-square class="size-4 text-zinc-400" />
+                        <flux:icon.pencil-square class="size-4 text-pink-400" />
                     </button>
                 @endforeach
             </div>
@@ -661,7 +671,7 @@ new #[Title('Input Data Kependudukan')] class extends Component
                     </div>
                 </form>
             @else
-                <div class="grid place-items-center rounded-xl border border-dashed border-zinc-300 px-6 py-10 text-center text-sm text-zinc-500 dark:border-zinc-700">
+                <div class="grid place-items-center rounded-xl border border-dashed border-pink-200 bg-pink-50/40 px-6 py-10 text-center text-sm text-pink-500">
                     Pilih periode di sebelah kiri untuk mengubahnya.
                 </div>
             @endif
@@ -670,11 +680,11 @@ new #[Title('Input Data Kependudukan')] class extends Component
     @endif
 
     @if ($inputMode !== 'manage')
-    <div class="inline-flex w-fit rounded-xl bg-zinc-100 p-1 dark:bg-zinc-800" role="tablist" aria-label="Mode input data">
-        <button type="button" wire:click="$set('inputMode', 'single')" class="rounded-lg px-4 py-2 text-sm font-medium transition {{ $inputMode === 'single' ? 'bg-white text-zinc-900 shadow-sm dark:bg-zinc-700 dark:text-white' : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-white' }}">
+    <div class="inline-flex w-fit rounded-xl bg-pink-50 p-1" role="tablist" aria-label="Mode input data">
+        <button type="button" wire:click="$set('inputMode', 'single')" class="rounded-lg px-4 py-2 text-sm font-medium transition {{ $inputMode === 'single' ? 'border border-pink-100 bg-white text-rose-950 shadow-sm' : 'text-pink-600 hover:bg-pink-100' }}">
             Input satuan
         </button>
-        <button type="button" wire:click="$set('inputMode', 'bulk')" class="rounded-lg px-4 py-2 text-sm font-medium transition {{ $inputMode === 'bulk' ? 'bg-white text-zinc-900 shadow-sm dark:bg-zinc-700 dark:text-white' : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-white' }}">
+        <button type="button" wire:click="$set('inputMode', 'bulk')" class="rounded-lg px-4 py-2 text-sm font-medium transition {{ $inputMode === 'bulk' ? 'border border-pink-100 bg-white text-rose-950 shadow-sm' : 'text-pink-600 hover:bg-pink-100' }}">
             Import massal
         </button>
     </div>
@@ -682,7 +692,7 @@ new #[Title('Input Data Kependudukan')] class extends Component
 
     @if ($inputMode === 'single')
         <div class="grid gap-6 xl:grid-cols-[0.8fr_1.2fr]">
-            <form wire:submit="save" class="grid content-start gap-5 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+            <form wire:submit="save" class="grid content-start gap-5 rounded-2xl border border-pink-100 bg-white p-6 shadow-sm shadow-pink-100/50">
                 <div class="grid gap-4 sm:grid-cols-2">
                     <flux:field>
                         <flux:label>Periode</flux:label>
@@ -751,7 +761,7 @@ new #[Title('Input Data Kependudukan')] class extends Component
                     <flux:input wire:model="value" type="number" min="0" step="0.0001" placeholder="0" />
                     <flux:error name="value" />
                 </flux:field>
-                <div class="flex justify-end">
+                <div class="flex justify-end border-t border-pink-100 pt-5">
                     <flux:button type="submit" variant="primary" icon="inbox-arrow-down" wire:loading.attr="disabled">
                         <span wire:loading.remove wire:target="save">Simpan ke database</span>
                         <span wire:loading wire:target="save">Menyimpan…</span>
@@ -759,14 +769,14 @@ new #[Title('Input Data Kependudukan')] class extends Component
                 </div>
             </form>
 
-            <section class="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-                <div class="border-b border-zinc-200 px-6 py-5 dark:border-zinc-700">
+            <section class="overflow-hidden rounded-2xl border border-pink-100 bg-white shadow-sm shadow-pink-100/50">
+                <div class="border-b border-pink-100 px-5 py-4">
                     <flux:heading size="lg">Data terbaru</flux:heading>
                     <flux:text class="mt-1">Sepuluh nilai yang terakhir diperbarui.</flux:text>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-sm">
-                        <thead class="bg-zinc-50 text-xs uppercase tracking-wide text-zinc-500 dark:bg-zinc-950">
+                        <thead class="bg-pink-50/60 text-xs uppercase tracking-wide text-pink-600">
                             <tr>
                                 <th class="px-5 py-3 font-medium">Wilayah</th>
                                 <th class="px-4 py-3 font-medium">Indikator</th>
@@ -775,20 +785,20 @@ new #[Title('Input Data Kependudukan')] class extends Component
                                 <th class="px-5 py-3 text-right font-medium">Nilai</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800">
+                        <tbody class="divide-y divide-pink-50">
                             @forelse ($this->recentFacts as $fact)
-                                <tr wire:key="recent-fact-{{ $fact->fakta_id }}">
+                                <tr wire:key="recent-fact-{{ $fact->fakta_id }}" class="transition-colors hover:bg-pink-50/50">
                                     <td class="px-5 py-3">
-                                        <p class="font-medium text-zinc-800 dark:text-zinc-100">{{ $fact->village->nama_desa_kelurahan }}</p>
-                                        <p class="text-xs text-zinc-500">{{ $fact->village->district->nama_kecamatan }} · {{ $fact->period->label_periode }}</p>
+                                        <p class="font-medium text-rose-950">{{ $fact->village->nama_desa_kelurahan }}</p>
+                                        <p class="text-xs text-pink-500">{{ $fact->village->district->nama_kecamatan }} · {{ $fact->period->label_periode }}</p>
                                     </td>
-                                    <td class="px-4 py-3 text-zinc-600 dark:text-zinc-300">{{ $fact->indicator->nama_indikator }}</td>
-                                    <td class="px-4 py-3 text-zinc-600 dark:text-zinc-300">{{ $fact->category->nama_kategori }}</td>
+                                    <td class="px-4 py-3 text-rose-800">{{ $fact->indicator->nama_indikator }}</td>
+                                    <td class="px-4 py-3 text-pink-500">{{ $fact->category->nama_kategori }}</td>
                                     <td class="px-4 py-3"><flux:badge size="sm">{{ $fact->gender->kode_jenis_kelamin }}</flux:badge></td>
                                     <td class="px-5 py-3 text-right font-semibold tabular-nums">{{ number_format((float) $fact->nilai, 0, ',', '.') }}</td>
                                 </tr>
                             @empty
-                                <tr><td colspan="5" class="px-5 py-10 text-center text-zinc-500">Belum ada data.</td></tr>
+                                <tr><td colspan="5" class="px-5 py-10 text-center text-pink-500">Belum ada data.</td></tr>
                             @endforelse
                         </tbody>
                     </table>
@@ -797,7 +807,7 @@ new #[Title('Input Data Kependudukan')] class extends Component
         </div>
     @elseif ($inputMode === 'bulk')
         <div class="grid gap-6 xl:grid-cols-[0.75fr_1.25fr]">
-            <section class="grid content-start gap-6 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+            <section class="grid content-start gap-6 rounded-2xl border border-pink-100 bg-white p-6 shadow-sm shadow-pink-100/50">
                 <div>
                     <flux:heading size="lg">1. Unduh template</flux:heading>
                     <flux:text class="mt-1">Pilih indikator. Template berisi seluruh desa dan kombinasi kategori yang sesuai data historis.</flux:text>
@@ -819,7 +829,7 @@ new #[Title('Input Data Kependudukan')] class extends Component
                     <flux:callout.text>Buka template di Excel, isi kolom <strong>Nilai</strong>, lalu unggah kembali tanpa mengubah struktur file.</flux:callout.text>
                 </flux:callout>
 
-                <div class="border-t border-zinc-200 pt-6 dark:border-zinc-700">
+                <div class="border-t border-pink-100 pt-6">
                     <flux:heading size="lg">2. Unggah dan periksa</flux:heading>
                     <flux:text class="mt-1">Maksimal 10.000 baris atau 5 MB per unggahan.</flux:text>
                 </div>
@@ -836,7 +846,7 @@ new #[Title('Input Data Kependudukan')] class extends Component
                     </flux:field>
                     <flux:field>
                         <flux:label>File Excel</flux:label>
-                        <input wire:model="importFile" type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" class="block w-full rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-700 file:mr-4 file:rounded-lg file:border-0 file:bg-zinc-100 file:px-3 file:py-2 file:text-sm file:font-medium dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-200 dark:file:bg-zinc-800" />
+                        <input wire:model="importFile" type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" class="block w-full rounded-xl border border-pink-200 bg-pink-50/50 px-3 py-2 text-sm text-rose-800 file:mr-4 file:rounded-lg file:border-0 file:bg-white file:px-3 file:py-2 file:text-sm file:font-medium file:text-pink-600" />
                         <flux:error name="importFile" />
                     </flux:field>
                     <flux:button type="submit" variant="primary" icon="magnifying-glass" wire:loading.attr="disabled">
@@ -846,32 +856,36 @@ new #[Title('Input Data Kependudukan')] class extends Component
                 </form>
             </section>
 
-            <section class="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-                <div class="border-b border-zinc-200 px-6 py-5 dark:border-zinc-700">
+            <section class="overflow-hidden rounded-2xl border border-pink-100 bg-white shadow-sm shadow-pink-100/50">
+                <div class="border-b border-pink-100 px-5 py-4">
                     <flux:heading size="lg">Pratinjau impor</flux:heading>
                     <flux:text class="mt-1">Data belum disimpan sampai tombol simpan ditekan.</flux:text>
                 </div>
 
                 @if ($importTotal > 0 || $importErrors !== [])
-                    <div class="grid grid-cols-3 gap-3 border-b border-zinc-200 p-6 dark:border-zinc-700">
-                        <div class="rounded-xl bg-zinc-50 p-4 dark:bg-zinc-800">
-                            <p class="text-xs uppercase tracking-wide text-zinc-500">Dibaca</p>
+                    <div class="grid grid-cols-2 gap-3 border-b border-pink-100 p-5 sm:grid-cols-4">
+                        <div class="rounded-xl border border-pink-100 bg-pink-50/60 p-4">
+                            <p class="text-xs uppercase tracking-wide text-pink-500">Dibaca</p>
                             <p class="mt-1 text-2xl font-semibold tabular-nums">{{ number_format($importTotal, 0, ',', '.') }}</p>
                         </div>
-                        <div class="rounded-xl bg-emerald-50 p-4 dark:bg-emerald-950/40">
-                            <p class="text-xs uppercase tracking-wide text-emerald-700 dark:text-emerald-300">Valid</p>
-                            <p class="mt-1 text-2xl font-semibold tabular-nums text-emerald-700 dark:text-emerald-300">{{ number_format($importValid, 0, ',', '.') }}</p>
+                        <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+                            <p class="text-xs uppercase tracking-wide text-emerald-700">Data baru</p>
+                            <p class="mt-1 text-2xl font-semibold tabular-nums text-emerald-700">{{ number_format($importNew, 0, ',', '.') }}</p>
                         </div>
-                        <div class="rounded-xl bg-red-50 p-4 dark:bg-red-950/40">
-                            <p class="text-xs uppercase tracking-wide text-red-700 dark:text-red-300">Bermasalah</p>
-                            <p class="mt-1 text-2xl font-semibold tabular-nums text-red-700 dark:text-red-300">{{ number_format($importInvalid, 0, ',', '.') }}</p>
+                        <div class="rounded-xl border border-amber-200 bg-amber-50 p-4">
+                            <p class="text-xs uppercase tracking-wide text-amber-700">Akan ditimpa</p>
+                            <p class="mt-1 text-2xl font-semibold tabular-nums text-amber-700">{{ number_format($importUpdated, 0, ',', '.') }}</p>
+                        </div>
+                        <div class="rounded-xl border border-red-200 bg-red-50 p-4">
+                            <p class="text-xs uppercase tracking-wide text-red-700">Bermasalah</p>
+                            <p class="mt-1 text-2xl font-semibold tabular-nums text-red-700">{{ number_format($importInvalid, 0, ',', '.') }}</p>
                         </div>
                     </div>
 
                     @if ($importErrors !== [])
-                        <div class="border-b border-zinc-200 bg-red-50 px-6 py-5 dark:border-zinc-700 dark:bg-red-950/20">
-                            <p class="font-medium text-red-800 dark:text-red-200">Periksa baris berikut sebelum mengimpor ulang:</p>
-                            <ul class="mt-3 max-h-40 space-y-1 overflow-y-auto text-sm text-red-700 dark:text-red-300">
+                        <div class="border-b border-pink-100 bg-red-50 px-5 py-4">
+                            <p class="font-medium text-red-800">Periksa baris berikut sebelum mengimpor ulang:</p>
+                            <ul class="mt-3 max-h-40 space-y-1 overflow-y-auto text-sm text-red-700">
                                 @foreach ($importErrors as $error)
                                     <li>Baris {{ $error['line'] }}: {{ $error['message'] }}</li>
                                 @endforeach
@@ -882,36 +896,38 @@ new #[Title('Input Data Kependudukan')] class extends Component
                     @if ($importPreview !== [])
                         <div class="overflow-x-auto">
                             <table class="w-full text-left text-sm">
-                                <thead class="bg-zinc-50 text-xs uppercase tracking-wide text-zinc-500 dark:bg-zinc-950">
+                                <thead class="bg-pink-50/60 text-xs uppercase tracking-wide text-pink-600">
                                     <tr>
                                         <th class="px-5 py-3 font-medium">Baris</th>
                                         <th class="px-4 py-3 font-medium">Wilayah</th>
                                         <th class="px-4 py-3 font-medium">Indikator/Kategori</th>
                                         <th class="px-4 py-3 font-medium">JK</th>
+                                        <th class="px-4 py-3 font-medium">Aksi</th>
                                         <th class="px-5 py-3 text-right font-medium">Nilai</th>
                                     </tr>
                                 </thead>
-                                <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800">
+                                <tbody class="divide-y divide-pink-50">
                                     @foreach ($importPreview as $row)
-                                        <tr wire:key="preview-row-{{ $row['line'] }}">
-                                            <td class="px-5 py-3 text-zinc-500">{{ $row['line'] }}</td>
+                                        <tr wire:key="preview-row-{{ $row['line'] }}" class="hover:bg-pink-50/50">
+                                            <td class="px-5 py-3 text-pink-500">{{ $row['line'] }}</td>
                                             <td class="px-4 py-3">
                                                 <p class="font-medium">{{ $row['village'] }}</p>
-                                                <p class="text-xs text-zinc-500">{{ $row['district'] }}</p>
+                                                <p class="text-xs text-pink-500">{{ $row['district'] }}</p>
                                             </td>
                                             <td class="px-4 py-3">
                                                 <p>{{ $row['indicator'] }}</p>
-                                                <p class="text-xs text-zinc-500">{{ $row['category'] }}</p>
+                                                <p class="text-xs text-pink-500">{{ $row['category'] }}</p>
                                             </td>
                                             <td class="px-4 py-3">{{ $row['gender'] }}</td>
+                                            <td class="px-4 py-3"><span class="rounded-full px-2 py-1 text-xs font-semibold {{ $row['action'] === 'Perbarui' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700' }}">{{ $row['action'] }}</span></td>
                                             <td class="px-5 py-3 text-right font-semibold tabular-nums">{{ number_format((float) $row['value'], 0, ',', '.') }}</td>
                                         </tr>
                                     @endforeach
                                 </tbody>
                             </table>
                         </div>
-                        <div class="flex flex-wrap items-center justify-between gap-4 border-t border-zinc-200 px-6 py-5 dark:border-zinc-700">
-                            <flux:text>Yang disimpan hanya {{ number_format($importValid, 0, ',', '.') }} baris valid. Baris bermasalah dilewati.</flux:text>
+                        <div class="flex flex-wrap items-center justify-between gap-4 border-t border-pink-100 px-5 py-4">
+                            <flux:text>{{ number_format($importNew, 0, ',', '.') }} data baru akan ditambahkan dan {{ number_format($importUpdated, 0, ',', '.') }} data akan diperbarui. Baris bermasalah dilewati.</flux:text>
                             <flux:button wire:click="saveImport" variant="primary" icon="inbox-arrow-down" wire:loading.attr="disabled">
                                 <span wire:loading.remove wire:target="saveImport">Simpan baris valid</span>
                                 <span wire:loading wire:target="saveImport">Menyimpan…</span>
@@ -921,25 +937,25 @@ new #[Title('Input Data Kependudukan')] class extends Component
                 @else
                     <div class="grid min-h-72 place-items-center px-6 py-12 text-center">
                         <div>
-                            <flux:icon.document-magnifying-glass class="mx-auto size-10 text-zinc-400" />
-                            <p class="mt-4 font-medium text-zinc-700 dark:text-zinc-200">Belum ada file yang diperiksa</p>
-                            <p class="mt-1 text-sm text-zinc-500">Unggah Excel untuk melihat ringkasan validasi dan contoh data.</p>
+                            <span class="mx-auto grid size-16 place-items-center rounded-2xl border border-pink-100 bg-pink-50"><flux:icon.document-magnifying-glass class="size-8 text-pink-300" /></span>
+                            <p class="mt-4 font-medium text-rose-950">Belum ada file yang diperiksa</p>
+                            <p class="mt-1 text-sm text-pink-500">Unggah Excel untuk melihat ringkasan validasi dan contoh data.</p>
                         </div>
                     </div>
                 @endif
             </section>
         </div>
     @else
-        <section class="grid gap-6 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-            <div class="flex flex-wrap items-end justify-between gap-4">
+        <section class="grid gap-6 overflow-hidden rounded-2xl border border-pink-100 bg-white shadow-sm shadow-pink-100/50">
+            <div class="flex flex-wrap items-end justify-between gap-4 px-5 pt-5">
                 <div>
                     <flux:heading size="lg">Edit data tersimpan</flux:heading>
                     <flux:text class="mt-1">Pilih filter, ubah nilai langsung di tabel, lalu simpan masing-masing baris yang diedit.</flux:text>
                 </div>
-                <flux:badge color="blue">{{ number_format($this->managedFacts->total(), 0, ',', '.') }} data ditemukan</flux:badge>
+                <span class="rounded-full bg-pink-500 px-3 py-1.5 text-xs font-bold text-white shadow-sm">{{ number_format($this->managedFacts->total(), 0, ',', '.') }} data ditemukan</span>
             </div>
 
-            <div class="grid gap-4 border-y border-zinc-200 py-5 sm:grid-cols-2 xl:grid-cols-5 dark:border-zinc-700">
+            <div class="grid gap-4 border-y border-pink-100 px-5 py-4 sm:grid-cols-2 xl:grid-cols-5">
                 <flux:field>
                     <flux:label>Periode</flux:label>
                     <flux:select wire:model.live="managePeriodId">
@@ -989,9 +1005,9 @@ new #[Title('Input Data Kependudukan')] class extends Component
                 </flux:field>
             </div>
 
-            <div class="overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-700">
+            <div class="mx-5 overflow-x-auto rounded-xl border border-pink-100">
                     <table class="w-full text-left text-sm">
-                        <thead class="bg-zinc-50 text-xs uppercase tracking-wide text-zinc-500 dark:bg-zinc-950">
+                        <thead class="bg-pink-50/60 text-xs uppercase tracking-wide text-pink-600">
                             <tr>
                                 <th class="px-5 py-3 font-medium">Wilayah</th>
                                 <th class="px-4 py-3 font-medium">Indikator</th>
@@ -1001,15 +1017,15 @@ new #[Title('Input Data Kependudukan')] class extends Component
                                 <th class="px-5 py-3 text-right font-medium">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800">
+                        <tbody class="divide-y divide-pink-50">
                             @forelse ($this->managedFacts as $fact)
-                                <tr wire:key="managed-fact-{{ $fact->fakta_id }}">
+                                <tr wire:key="managed-fact-{{ $fact->fakta_id }}" class="transition-colors hover:bg-pink-50/50">
                                     <td class="px-5 py-3">
-                                        <p class="font-medium text-zinc-800 dark:text-zinc-100">{{ $fact->village->nama_desa_kelurahan }}</p>
-                                        <p class="text-xs text-zinc-500">{{ $fact->village->district->nama_kecamatan }}</p>
+                                        <p class="font-medium text-rose-950">{{ $fact->village->nama_desa_kelurahan }}</p>
+                                        <p class="text-xs text-pink-500">{{ $fact->village->district->nama_kecamatan }}</p>
                                     </td>
-                                    <td class="px-4 py-3 text-zinc-600 dark:text-zinc-300">{{ $fact->indicator->nama_indikator }}</td>
-                                    <td class="px-4 py-3 text-zinc-600 dark:text-zinc-300">{{ $fact->category->nama_kategori }}</td>
+                                    <td class="px-4 py-3 text-rose-800">{{ $fact->indicator->nama_indikator }}</td>
+                                    <td class="px-4 py-3 text-pink-500">{{ $fact->category->nama_kategori }}</td>
                                     <td class="px-4 py-3"><flux:badge size="sm">{{ $fact->gender->kode_jenis_kelamin }}</flux:badge></td>
                                     <td class="px-5 py-3">
                                         <flux:input wire:model="managedValues.{{ $fact->fakta_id }}" type="number" min="0" step="0.0001" class="text-right tabular-nums" />
@@ -1022,13 +1038,13 @@ new #[Title('Input Data Kependudukan')] class extends Component
                                     </td>
                                 </tr>
                             @empty
-                                <tr><td colspan="6" class="px-5 py-10 text-center text-zinc-500">Tidak ada data sesuai filter.</td></tr>
+                                <tr><td colspan="6" class="px-5 py-10 text-center text-pink-500">Tidak ada data sesuai filter.</td></tr>
                             @endforelse
                         </tbody>
                     </table>
             </div>
 
-            <div class="mt-5">{{ $this->managedFacts->links() }}</div>
+            <div class="mx-5 mb-5 mt-4">{{ $this->managedFacts->links() }}</div>
         </section>
     @endif
 </div>

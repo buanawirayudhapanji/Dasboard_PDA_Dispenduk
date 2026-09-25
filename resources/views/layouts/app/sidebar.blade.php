@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
         @include('partials.head')
     </head>
-    <body class="min-h-screen bg-white dark:bg-zinc-800">
-        <flux:sidebar sticky collapsible="mobile" class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
+    <body class="min-h-screen bg-[#fff6fa] text-rose-950">
+        <flux:sidebar sticky collapsible="mobile" class="border-e border-pink-100 bg-white">
             <flux:sidebar.header>
                 <x-app-logo :sidebar="true" href="{{ route('dashboard') }}" wire:navigate />
                 <flux:sidebar.collapse class="lg:hidden" />
@@ -21,6 +21,9 @@
                     <flux:sidebar.item icon="pencil-square" :href="route('data-edit')" :current="request()->routeIs('data-edit')" wire:navigate>
                         {{ __('Edit data') }}
                     </flux:sidebar.item>
+                    @if (auth()->user()->isAdmin())
+                        <flux:sidebar.item icon="users" :href="route('staff-management')" :current="request()->routeIs('staff-management')" wire:navigate>Kelola Petugas</flux:sidebar.item>
+                    @endif
                 </flux:sidebar.group>
             </flux:sidebar.nav>
 
@@ -37,7 +40,8 @@
 
             <flux:dropdown position="top" align="end">
                 <flux:profile
-                    :initials="auth()->user()->initials()"
+                    avatar:icon="user"
+                    avatar:color="pink"
                     icon-trailing="chevron-down"
                 />
 
@@ -46,8 +50,8 @@
                         <div class="p-0 text-sm font-normal">
                             <div class="flex items-center gap-2 px-1 py-1.5 text-start text-sm">
                                 <flux:avatar
-                                    :name="auth()->user()->name"
-                                    :initials="auth()->user()->initials()"
+                                    icon="user"
+                                    color="pink"
                                 />
 
                                 <div class="grid flex-1 text-start text-sm leading-tight">

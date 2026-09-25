@@ -2,11 +2,11 @@
 
 namespace App\Providers;
 
-use App\Actions\Fortify\CreateNewUser;
-use App\Actions\Fortify\ResetUserPassword;
 use App\Http\Responses\LoginResponse;
+use App\Models\User;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
@@ -38,8 +38,13 @@ class FortifyServiceProvider extends ServiceProvider
      */
     private function configureActions(): void
     {
-        Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
-        Fortify::createUsersUsing(CreateNewUser::class);
+        Fortify::authenticateUsing(function (Request $request): ?User {
+            $user = User::query()->where('nik', $request->string('nik'))->first();
+
+            return $user !== null && $user->is_active && Hash::check($request->string('password'), $user->password)
+                ? $user
+                : null;
+        });
     }
 
     /**
@@ -48,11 +53,7 @@ class FortifyServiceProvider extends ServiceProvider
     private function configureViews(): void
     {
         Fortify::loginView(fn () => view('pages::auth.login'));
-        Fortify::verifyEmailView(fn () => view('pages::auth.verify-email'));
         Fortify::confirmPasswordView(fn () => view('pages::auth.confirm-password'));
-        Fortify::registerView(fn () => view('pages::auth.register'));
-        Fortify::resetPasswordView(fn () => view('pages::auth.reset-password'));
-        Fortify::requestPasswordResetLinkView(fn () => view('pages::auth.forgot-password'));
     }
 
     /**
@@ -66,16 +67,6 @@ class FortifyServiceProvider extends ServiceProvider
             return Limit::perMinute(5)->by($throttleKey);
         });
 
-        RateLimiter::for('email-otp', function (Request $request) {
-            return Limit::perMinute(5)->by(
-                $request->session()->get('login_otp.user_id').'|'.$request->ip(),
-            );
-        });
-
-        RateLimiter::for('email-otp-resend', function (Request $request) {
-            return Limit::perMinute(2)->by(
-                $request->session()->get('login_otp.user_id').'|'.$request->ip(),
-            );
-        });
+        RateLimiter::for('password-otp', fn (Request $request) => Limit::perMinute(3)->by($request->input('email').'|'.$request->ip()));
     }
 }

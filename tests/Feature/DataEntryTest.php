@@ -318,6 +318,8 @@ it('previews and saves valid rows from an Excel file while skipping invalid rows
         ->assertSet('importTotal', 2)
         ->assertSet('importValid', 1)
         ->assertSet('importInvalid', 1)
+        ->assertSet('importNew', 1)
+        ->assertSet('importUpdated', 0)
         ->assertSee('kode desa/kelurahan 9999999999 tidak dikenal');
 
     $this->assertDatabaseMissing('fact_kependudukan', [

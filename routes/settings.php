@@ -8,9 +8,7 @@ Route::middleware(['auth'])->group(function () {
     Route::livewire('settings/profile', 'pages::settings.profile')->name('profile.edit');
 });
 
-Route::middleware(['auth', 'verified'])->group(function () {
-    Route::livewire('settings/appearance', 'pages::settings.appearance')->name('appearance.edit');
-
+Route::middleware(['auth'])->group(function () {
     Route::livewire('settings/security', 'pages::settings.security')
         ->middleware([
             'password.confirm',

@@ -1,6 +1,6 @@
 <x-layouts::auth :title="__('Log in')">
     <div class="flex flex-col gap-6">
-        <x-auth-header title="Login Petugas" description="Masukkan email dan password. Kami akan mengirimkan kode OTP ke email Anda." />
+        <x-auth-header title="Login Petugas" description="Masukkan NIK dan password Anda." />
 
         <!-- Session Status -->
         <x-auth-session-status class="text-center" :status="session('status')" />
@@ -8,16 +8,15 @@
         <form method="POST" action="{{ route('login.store') }}" class="flex flex-col gap-6">
             @csrf
 
-            <!-- Email Address -->
             <flux:input
-                name="email"
-                :label="__('Email address')"
-                :value="old('email')"
-                type="email"
+                name="nik"
+                label="NIK"
+                :value="old('nik')"
+                inputmode="numeric"
                 required
                 autofocus
-                autocomplete="email"
-                placeholder="email@example.com"
+                autocomplete="username"
+                placeholder="16 digit NIK"
             />
 
             <!-- Password -->

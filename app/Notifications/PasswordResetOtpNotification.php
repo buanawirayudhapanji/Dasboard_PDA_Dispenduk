@@ -2,15 +2,19 @@
 
 namespace App\Notifications;
 
+use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class LoginOtpNotification extends Notification
+class PasswordResetOtpNotification extends Notification
 {
     use Queueable;
 
-    public function __construct(public readonly string $code) {}
+    /**
+     * Create a new notification instance.
+     */
+    public function __construct(public string $code) {}
 
     /**
      * Get the notification's delivery channels.
@@ -27,13 +31,14 @@ class LoginOtpNotification extends Notification
      */
     public function toMail(object $notifiable): MailMessage
     {
+        $name = $notifiable instanceof User ? $notifiable->name : 'Petugas';
+
         return (new MailMessage)
-            ->subject('Kode OTP Login Dashboard Kependudukan Jember')
-            ->greeting('Halo Petugas,')
-            ->line('Gunakan kode berikut untuk menyelesaikan login:')
-            ->line($this->code)
-            ->line('Kode ini berlaku selama '.config('auth.email_otp.expires_minutes').' menit dan hanya dapat digunakan satu kali.')
-            ->line('Abaikan email ini jika Anda tidak mencoba login.');
+            ->subject('Kode OTP Ganti Password')
+            ->greeting('Halo '.$name.',')
+            ->line('Gunakan kode berikut untuk mengganti password akun Anda:')
+            ->line('**'.$this->code.'**')
+            ->line('Kode berlaku selama 10 menit dan hanya dapat digunakan satu kali.');
     }
 
     /**
@@ -43,6 +48,8 @@ class LoginOtpNotification extends Notification
      */
     public function toArray(object $notifiable): array
     {
-        return [];
+        return [
+            'code' => $this->code,
+        ];
     }
 }

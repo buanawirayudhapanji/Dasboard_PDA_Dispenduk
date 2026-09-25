@@ -5,6 +5,7 @@ namespace App\Actions;
 use App\Models\Category;
 use App\Models\Gender;
 use App\Models\Indicator;
+use App\Models\PopulationFact;
 use App\Models\Village;
 use OpenSpout\Reader\XLSX\Reader;
 
@@ -24,7 +25,9 @@ class ParsePopulationXlsxImport
      *     preview: list<array<string, int|string>>,
      *     errors: list<array{line: int, message: string}>,
      *     total: int,
-     *     invalid: int
+     *     invalid: int,
+     *     new: int,
+     *     updated: int
      * }
      */
     public function handle(string $path, int $periodId, int $sourceId): array
@@ -48,6 +51,18 @@ class ParsePopulationXlsxImport
         $seenKeys = [];
         $total = 0;
         $invalid = 0;
+        $new = 0;
+        $updated = 0;
+        $existingKeys = PopulationFact::query()
+            ->where('periode_id', $periodId)
+            ->get(['desa_kelurahan_id', 'indikator_id', 'kategori_id', 'jenis_kelamin_id'])
+            ->mapWithKeys(fn (PopulationFact $fact): array => [implode('|', [
+                $fact->desa_kelurahan_id,
+                $fact->indikator_id,
+                $fact->kategori_id,
+                $fact->jenis_kelamin_id,
+            ]) => true])
+            ->all();
         $headers = [];
         $reader = new Reader;
 
@@ -127,6 +142,14 @@ class ParsePopulationXlsxImport
                     }
 
                     $seenKeys[$uniqueKey] = $line;
+                    $factKey = implode('|', [
+                        $village->desa_kelurahan_id,
+                        $indicator->indikator_id,
+                        $category->kategori_id,
+                        $gender->jenis_kelamin_id,
+                    ]);
+                    $willUpdate = isset($existingKeys[$factKey]);
+                    $willUpdate ? $updated++ : $new++;
                     $rows[] = [
                         'periode_id' => $periodId,
                         'desa_kelurahan_id' => $village->desa_kelurahan_id,
@@ -146,6 +169,7 @@ class ParsePopulationXlsxImport
                             'category' => $category->nama_kategori,
                             'gender' => $gender->kode_jenis_kelamin,
                             'value' => $numericValue,
+                            'action' => $willUpdate ? 'Perbarui' : 'Baru',
                         ];
                     }
                 }
@@ -163,10 +187,12 @@ class ParsePopulationXlsxImport
                 'errors' => [['line' => 1, 'message' => 'Header template Excel tidak ditemukan. Gunakan template yang diunduh dari aplikasi.']],
                 'total' => 0,
                 'invalid' => 1,
+                'new' => 0,
+                'updated' => 0,
             ];
         }
 
-        return compact('rows', 'preview', 'errors', 'total', 'invalid');
+        return compact('rows', 'preview', 'errors', 'total', 'invalid', 'new', 'updated');
     }
 
     /**

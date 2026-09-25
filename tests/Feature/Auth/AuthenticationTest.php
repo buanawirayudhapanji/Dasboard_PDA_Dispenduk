@@ -1,8 +1,6 @@
 <?php
 
 use App\Models\User;
-use App\Notifications\LoginOtpNotification;
-use Illuminate\Support\Facades\Notification;
 use Laravel\Fortify\Features;
 
 test('login screen can be rendered', function () {
@@ -11,28 +9,26 @@ test('login screen can be rendered', function () {
     $response->assertOk();
 });
 
-test('valid credentials require an email otp before authentication', function () {
-    Notification::fake();
+test('active users authenticate directly with nik and password', function () {
     $user = User::factory()->create();
 
     $response = $this->post(route('login.store'), [
-        'email' => $user->email,
+        'nik' => $user->nik,
         'password' => 'password',
     ]);
 
     $response
         ->assertSessionHasNoErrors()
-        ->assertRedirect(route('login.otp'));
+        ->assertRedirect(route('dashboard'));
 
-    Notification::assertSentTo($user, LoginOtpNotification::class);
-    $this->assertGuest();
+    $this->assertAuthenticatedAs($user);
 });
 
 test('users can not authenticate with invalid password', function () {
     $user = User::factory()->create();
 
     $response = $this->post(route('login.store'), [
-        'email' => $user->email,
+        'nik' => $user->nik,
         'password' => 'wrong-password',
     ]);
 
@@ -52,7 +48,7 @@ test('users with two factor enabled are redirected to two factor challenge', fun
     $user = User::factory()->withTwoFactor()->create();
 
     $response = $this->post(route('login.store'), [
-        'email' => $user->email,
+        'nik' => $user->nik,
         'password' => 'password',
     ]);
 
