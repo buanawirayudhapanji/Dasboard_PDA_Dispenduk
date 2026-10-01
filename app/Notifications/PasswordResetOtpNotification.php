@@ -35,10 +35,11 @@ class PasswordResetOtpNotification extends Notification
 
         return (new MailMessage)
             ->subject('Kode OTP Ganti Password')
-            ->greeting('Halo '.$name.',')
-            ->line('Gunakan kode berikut untuk mengganti password akun Anda:')
-            ->line('**'.$this->code.'**')
-            ->line('Kode berlaku selama 10 menit dan hanya dapat digunakan satu kali.');
+            ->view('emails.password-reset-otp', [
+                'name' => $name,
+                'code' => $this->code,
+                'minutes' => 10,
+            ]);
     }
 
     /**
